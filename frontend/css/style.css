@@ -1,0 +1,155 @@
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f4f6f8;
+  color: #333;
+}
+
+/* ===== PAGE LAYOUT ===== */
+.container {
+  width: 90%;
+  max-width: 600px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+h2, h3 {
+  margin-top: 0;
+  color: #222;
+}
+
+/* ===== FORM ELEMENTS ===== */
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0 15px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* ===== BUTTONS ===== */
+button {
+  padding: 10px 15px;
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+/* ===== JOB CARD ===== */
+.job-card {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  background: #fafafa;
+}
+
+.job-card h4 {
+  margin: 0 0 8px 0;
+}
+
+.job-card p {
+  margin: 5px 0;
+}
+
+/* ===== INFO / NAV ===== */
+.nav {
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.nav a {
+  margin-right: 10px;
+  text-decoration: none;
+  color: #007bff;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+}
+
+.user-info {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* ===== APPLICANTS LIST ===== */
+.applicant {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+/* ===== STATUS TEXT ===== */
+.muted {
+  color: #888;
+  font-style: italic;
+}
+.success {
+  color: green;
+  font-weight: bold;
+}   
+.error {
+  color: red;
+  font-weight: bold;
+}
+.warning {
+  color: orange;
+  font-weight: bold;
+}
+.info {
+  color: blue;
+  font-weight: bold;
+}
+.notice {
+  color: purple;
+  font-weight: bold;
+}
+.highlight {
+  background-color: yellow;
+}
+.important {
+  font-weight: bold;
+  text-decoration: underline;
+}
+.debug {
+  color: gray;
+  font-style: italic;
+}
+.alert {
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+nav{
+    background-color: #333;
+    overflow: hidden;
+}

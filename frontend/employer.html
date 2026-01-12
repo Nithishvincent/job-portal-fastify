@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Employer Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <div class="nav">
+    <a href="seeker.html">View Jobs</a>
+  </div>
+
+  <h2>Create Job</h2>
+
+  <input id="title" placeholder="Title">
+  <input id="description" placeholder="Description">
+  <input id="company" placeholder="Company">
+  <button onclick="createJob()">Create Job</button>
+
+  <hr>
+
+  <h3>View Applicants</h3>
+  <input id="jobId" placeholder="Job ID">
+  <button onclick="viewApplicants()">View Applicants</button>
+
+  <div id="applicants"></div>
+
+</div>
+<script src="js/employer.js"></script>
+</body>
+</html>
