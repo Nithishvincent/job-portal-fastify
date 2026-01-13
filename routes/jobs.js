@@ -33,7 +33,17 @@ module.exports = async function jobRoutes(fastify, options) {
         company,
         createdBy: request.user.email
       }
+            const duplicateJob = jobs.find(j =>
+        j.title === title &&
+        j.company === company &&
+        j.createdBy === request.user.email
+      );
 
+      if (duplicateJob) {
+        reply.code(409);
+        return { error: "Job already exists" };
+      }
+      
       jobs.push(newJob)
 
       // Response
@@ -53,8 +63,9 @@ module.exports = async function jobRoutes(fastify, options) {
         count: jobs.length,
         jobs: jobs
     }
-    })
-    // JOB SEEKER - APPLY FOR JOB
+})
+
+// JOB SEEKER - APPLY FOR JOB
 fastify.post("/jobs/:id/apply", async (request, reply) => {
   try {
     // Verify JWT
@@ -137,7 +148,10 @@ fastify.get("/jobs/:id/applicants", async (request, reply) => {
     // Get applicants for this job
     const jobApplicants = applications
       .filter(app => app.jobId === jobId)
-      .map(app => app.applicantEmail)
+      .map(app => ({
+  email: app.applicantEmail,
+  status: app.status
+}))
 
     // Response
     return {
@@ -155,21 +169,21 @@ fastify.get("/jobs/:id/applicants", async (request, reply) => {
 // JOB SEEKER - VIEW MY APPLICATIONS
 fastify.get("/my-applications", async (request, reply) => {
   try {
-    // 1️⃣ Verify token
+    // Verify token
     const user = await request.jwtVerify();
 
-    // 2️⃣ Role check
+    // Role check
     if (user.role !== "JOB_SEEKER") {
       reply.code(403);
       return { error: "Only job seekers can view their applications" };
     }
 
-    // 3️⃣ Filter applications
+    // Filter applications
     const myApplications = applications.filter(
       app => app.applicantEmail === user.email
     );
 
-    // 4️⃣ Always return safely
+    // Always return safely
     return {
       count: myApplications.length,
       applications: myApplications
@@ -181,6 +195,7 @@ fastify.get("/my-applications", async (request, reply) => {
     return { error: "Unauthorized" };
   }
 })
+
 // EMPLOYER - VIEW OWN JOBS
 fastify.get("/my-jobs", async (request, reply) => {
   try {

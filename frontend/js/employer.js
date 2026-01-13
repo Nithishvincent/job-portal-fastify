@@ -16,13 +16,18 @@ let myJobsCache = [];
 // --------------------
 // CREATE JOB
 // --------------------
-async function createJob() {
+async function createJob(button) {
+  button.disabled = true;
+  button.innerText = "Creating...";
+
   const title = document.getElementById("title").value.trim();
   const description = document.getElementById("description").value.trim();
   const company = document.getElementById("company").value.trim();
 
   if (!title || !description || !company) {
     alert("All fields are required");
+    button.disabled = false;
+    button.innerText = "Create Job";
     return;
   }
 
@@ -36,7 +41,18 @@ async function createJob() {
   });
 
   const data = await res.json();
-  alert(data.message || data.error);
+
+  if (!res.ok) {
+    alert(data.error);
+    button.disabled = false;
+    button.innerText = "Create Job";
+    return;
+  }
+
+  alert("Job created successfully");
+  button.disabled = false;
+  button.innerText = "Create Job";
+
   loadMyJobs();
 }
 
@@ -77,7 +93,6 @@ async function loadMyJobs() {
       <div class="applicants-section"></div>
     `;
 
-    // buttons
     card.querySelector(".edit-btn")
       .addEventListener("click", () => openEditForm(job.id, card));
 
@@ -96,7 +111,7 @@ async function loadMyJobs() {
 }
 
 // --------------------
-// VIEW APPLICANTS (JOB-SPECIFIC)
+// VIEW APPLICANTS + STATUS ACTIONS
 // --------------------
 async function viewApplicants(jobId, container) {
   container.innerHTML = "<p class='muted'>Loading applicants...</p>";
@@ -119,12 +134,71 @@ async function viewApplicants(jobId, container) {
 
   container.innerHTML = "<h3>Applicants</h3>";
 
-  data.applicants.forEach(email => {
+  data.applicants.forEach(applicant => {
     const div = document.createElement("div");
     div.className = "applicant-card";
-    div.innerText = email;
+
+    div.innerHTML = `
+      <p><strong>Email:</strong> ${applicant.email}</p>
+      <p>
+        <strong>Status:</strong>
+        <span class="status ${applicant.status.toLowerCase()}">
+          ${applicant.status}
+        </span>
+      </p>
+    `;
+
+    // ACCEPT / REJECT ONLY IF PENDING
+    if (applicant.status === "PENDING") {
+      const acceptBtn = document.createElement("button");
+      acceptBtn.innerText = "Accept";
+      acceptBtn.className = "success";
+
+      const rejectBtn = document.createElement("button");
+      rejectBtn.innerText = "Reject";
+      rejectBtn.className = "danger";
+
+      acceptBtn.addEventListener("click", () =>
+        updateApplicationStatus(jobId, applicant.email, "ACCEPTED", container)
+      );
+
+      rejectBtn.addEventListener("click", () =>
+        updateApplicationStatus(jobId, applicant.email, "REJECTED", container)
+      );
+
+      div.appendChild(acceptBtn);
+      div.appendChild(rejectBtn);
+    }
+
     container.appendChild(div);
   });
+}
+
+// --------------------
+// UPDATE APPLICATION STATUS
+// --------------------
+async function updateApplicationStatus(jobId, email, status, container) {
+  const res = await fetch(
+    `${API}/jobs/${jobId}/applications/${email}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ status })
+    }
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.error);
+    return;
+  }
+
+  alert(`Application ${status.toLowerCase()}`);
+  viewApplicants(jobId, container);
 }
 
 // --------------------
