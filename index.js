@@ -2,8 +2,9 @@ const fastify = require("fastify")({ logger: true })
 
 // Enable CORS
 fastify.register(require("@fastify/cors"), {
-  origin: true
-})
+  origin: true,
+  methods: ["GET", "POST", "PUT", "DELETE"]
+});
 
 // JWT (only for signing & verifying)
 fastify.register(require("@fastify/jwt"), {
@@ -13,7 +14,6 @@ fastify.register(require("@fastify/jwt"), {
 // Routes
 fastify.register(require("./routes/home"))
 fastify.register(require("./routes/users"))
-
 fastify.register(require("./routes/jobs"))
 
 // Start server

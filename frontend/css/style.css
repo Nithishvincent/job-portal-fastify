@@ -51,6 +51,7 @@ button {
   font-size: 14px;
   border-radius: 4px;
   cursor: pointer;
+  align-content: center;
 }
 
 button:hover {
@@ -152,4 +153,7 @@ button:disabled {
 nav{
     background-color: #333;
     overflow: hidden;
+}
+button.danger {
+  background: #dc3545;
 }

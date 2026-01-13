@@ -25,10 +25,12 @@ async function loadJobs() {
   data.jobs.forEach(job => {
     const div = document.createElement("div");
     div.innerHTML = `
+    <div class="job-card">
       <h4>${job.title}</h4>
+      <p><strong>Company:</strong> ${job.company}</p>
       <p>${job.description}</p>
       <button id="apply-${job.id}" onclick="apply(${job.id})">Apply</button>
-      <hr>
+    </div>
     `;
     jobsDiv.appendChild(div);
   });

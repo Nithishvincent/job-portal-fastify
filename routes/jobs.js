@@ -180,5 +180,165 @@ fastify.get("/my-applications", async (request, reply) => {
     reply.code(401);
     return { error: "Unauthorized" };
   }
+})
+// EMPLOYER - VIEW OWN JOBS
+fastify.get("/my-jobs", async (request, reply) => {
+  try {
+    // Verify token
+    const user = await request.jwtVerify();
+
+    //  Role check
+    if (user.role !== "EMPLOYER") {
+      reply.code(403);
+      return { error: "Only employers can view their jobs" };
+    }
+
+    // Filter jobs by creator
+    const myJobs = jobs.filter(
+      job => job.createdBy === user.email
+    );
+
+    return {
+      count: myJobs.length,
+      jobs: myJobs
+    };
+
+  } catch (err) {
+    console.error(err);
+    reply.code(401);
+    return { error: "Unauthorized" };
+  }
 });
+// EMPLOYER - DELETE JOB
+fastify.delete("/jobs/:id", async (request, reply) => {
+  try {
+    const user = await request.jwtVerify();
+
+    if (user.role !== "EMPLOYER") {
+      reply.code(403);
+      return { error: "Only employers can delete jobs" };
+    }
+
+    const jobId = Number(request.params.id);
+    const jobIndex = jobs.findIndex(j => j.id === jobId);
+
+    if (jobIndex === -1) {
+      reply.code(404);
+      return { error: "Job not found" };
+    }
+
+    // Ownership check
+    if (jobs[jobIndex].createdBy !== user.email) {
+      reply.code(403);
+      return { error: "You do not own this job" };
+    }
+
+    // Remove job
+    jobs.splice(jobIndex, 1);
+
+    // Remove related applications
+    for (let i = applications.length - 1; i >= 0; i--) {
+      if (applications[i].jobId === jobId) {
+        applications.splice(i, 1);
+      }
+    }
+
+    return { message: "Job deleted successfully" };
+
+  } catch (err) {
+    reply.code(401);
+    return { error: "Unauthorized" };
+  }
+});
+
+// EMPLOYER - EDIT JOB
+fastify.put("/jobs/:id", async (request, reply) => {
+  try {
+    const user = await request.jwtVerify();
+
+    if (user.role !== "EMPLOYER") {
+      reply.code(403);
+      return { error: "Only employers can edit jobs" };
+    }
+
+    const jobId = Number(request.params.id);
+    const job = jobs.find(j => j.id === jobId);
+
+    if (!job) {
+      reply.code(404);
+      return { error: "Job not found" };
+    }
+
+    // Ownership check
+    if (job.createdBy !== user.email) {
+      reply.code(403);
+      return { error: "You do not own this job" };
+    }
+
+    const { title, description, company } = request.body;
+
+    if (!title || !description || !company) {
+      reply.code(400);
+      return { error: "All fields are required" };
+    }
+
+    // Update job
+    job.title = title;
+    job.description = description;
+    job.company = company;
+
+    return { message: "Job updated successfully", job };
+
+  } catch (err) {
+    reply.code(401);
+    return { error: "Unauthorized" };
+  }
+});
+// EMPLOYER - UPDATE APPLICATION STATUS
+fastify.put("/jobs/:id/applications/:email", async (request, reply) => {
+  try {
+    const user = await request.jwtVerify();
+
+    if (user.role !== "EMPLOYER") {
+      reply.code(403);
+      return { error: "Only employers can update application status" };
+    }
+
+    const jobId = Number(request.params.id);
+    const applicantEmail = request.params.email;
+    const { status } = request.body;
+
+    if (!["ACCEPTED", "REJECTED"].includes(status)) {
+      reply.code(400);
+      return { error: "Invalid status" };
+    }
+
+    const job = jobs.find(j => j.id === jobId);
+    if (!job || job.createdBy !== user.email) {
+      reply.code(403);
+      return { error: "Unauthorized job access" };
+    }
+
+    const application = applications.find(
+      a => a.jobId === jobId && a.applicantEmail === applicantEmail
+    );
+
+    if (!application) {
+      reply.code(404);
+      return { error: "Application not found" };
+    }
+
+    application.status = status;
+
+    return {
+      message: `Application ${status.toLowerCase()}`,
+      application
+    };
+
+  } catch (err) {
+    reply.code(401);
+    return { error: "Unauthorized" };
+  }
+});
+
 }

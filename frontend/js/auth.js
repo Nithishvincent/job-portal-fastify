@@ -5,6 +5,11 @@ async function register() {
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
 
+  if(!email || !password || !role) {
+    alert("All fields are required");
+    return;
+  }
+
   const res = await fetch(`${API}/users/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -18,7 +23,10 @@ async function register() {
 async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-
+  if(!email || !password) {
+    alert("Email and password are required");
+    return;
+  }
   const res = await fetch(`${API}/users/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -5,29 +5,42 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
 <div class="container">
-
-  <div class="nav">
-    <a href="seeker.html">View Jobs</a>
-  </div>
-
+<h1 style="text-align: center;">Employer Page</h1>
+<div class="container">
+  
   <h2>Create Job</h2>
-
   <input id="title" placeholder="Title">
   <input id="description" placeholder="Description">
   <input id="company" placeholder="Company">
   <button onclick="createJob()">Create Job</button>
-
-  <hr>
-
-  <h3>View Applicants</h3>
-  <input id="jobId" placeholder="Job ID">
-  <button onclick="viewApplicants()">View Applicants</button>
-
-  <div id="applicants"></div>
-
 </div>
-<script src="js/employer.js"></script>
+<div class="container">
+  <h3>My Jobs</h3>
+  <button onclick="loadMyJobs()">Load My Jobs</button>
+  <div id="myJobs"></div>
+</div>
+  <div class="nav">
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</div>
+</body>
+
+<script src="js/utils.js"></script>
+<script src="js/employer.js" defer></script>
+<style>
+  .nav {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .btn-logout {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  </style>
 </body>
 </html>
