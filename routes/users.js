@@ -1,61 +1,68 @@
-const users = [] // in-memory storage
+const db = require("../db");
 
 module.exports = async function userRoutes(fastify, options) {
 
   // REGISTER
   fastify.post("/users/register", async (request, reply) => {
-    const { email, password, role } = request.body || {}
+    const { email, password, role } = request.body || {};
 
     if (!email || !password || !role) {
-      reply.code(400)
-      return { error: "Email, password and role are required" }
+      reply.code(400);
+      return { error: "Email, password and role are required" };
     }
 
-    if (!["EMPLOYER", "JOB_SEEKER"].includes(role)) {
-      reply.code(400)
-      return { error: "Invalid role" }
+    if (!["EMPLOYER", "JOB_SEEKER", "ADMIN"].includes(role)) {
+      reply.code(400);
+      return { error: "Invalid role" };
     }
 
-    const exists = users.find(u => u.email === email)
-    if (exists) {
-      reply.code(409)
-      return { error: "Email already registered" }
+    const [existing] = await db.query(
+      "SELECT id FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (existing.length > 0) {
+      reply.code(409);
+      return { error: "Email already registered" };
     }
 
-    users.push({ email, password, role })
+    await db.query(
+      "INSERT INTO users (email, password, role) VALUES (?, ?, ?)",
+      [email, password, role]
+    );
 
-    return {
-      message: "User registered successfully",
-      user: { email, role }
-    }
-  })
-
+    return { message: "User registered successfully" };
+  });
 
   // LOGIN
   fastify.post("/users/login", async (request, reply) => {
-    const { email, password } = request.body || {}
+    const { email, password } = request.body || {};
 
     if (!email || !password) {
-      reply.code(400)
-      return { error: "Email and password are required" }
+      reply.code(400);
+      return { error: "Email and password are required" };
     }
 
-    const user = users.find(u => u.email === email)
-    if (!user || user.password !== password) {
-      reply.code(401)
-      return { error: "Invalid email or password" }
+    const [rows] = await db.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (rows.length === 0 || rows[0].password !== password) {
+      reply.code(401);
+      return { error: "Invalid email or password" };
     }
 
-    // Create JWT token
+    const user = rows[0];
+
     const token = fastify.jwt.sign({
-    email: user.email,
-    role: user.role
-  })
+      email: user.email,
+      role: user.role
+    });
 
     return {
       message: "Login successful",
       token
-    }
-  })
-
-}
+    };
+  });
+};
