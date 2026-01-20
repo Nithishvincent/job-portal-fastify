@@ -1,58 +1,130 @@
+console.log("JOB SEEKER JS LOADED");
+
 const API = "http://localhost:3000";
 const token = localStorage.getItem("token");
 
 if (!token) {
-  alert("Please login first");
+  alert("Please login");
   window.location.href = "login.html";
 }
 
-const user = getUserFromToken();
-if (!user) {
-  alert("Please login first");
-  window.location.href = "login.html";
-}
+// --------------------
+// STATE
+// --------------------
+let myApplicationsMap = {}; // { jobId: status }
 
-document.getElementById("userInfo").innerText =
-  `Logged in as ${user.email} (${user.role})`;
-
-async function loadJobs() {
-  const res = await fetch(`${API}/jobs`);
-  const data = await res.json();
-
-  const jobsDiv = document.getElementById("jobs");
-  jobsDiv.innerHTML = "";
-
-  data.jobs.forEach(job => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-    <div class="job-card">
-      <h4>${job.title}</h4>
-      <p><strong>Company:</strong> ${job.company}</p>
-      <p>${job.description}</p>
-      <button id="apply-${job.id}" onclick="apply(${job.id})">Apply</button>
-    </div>
-    `;
-    jobsDiv.appendChild(div);
-  });
-}
-
-async function apply(jobId) {
-  const btn = document.getElementById(`apply-${jobId}`);
-  btn.disabled = true;
-  btn.innerText = "Applying...";
-
-  const res = await fetch(`${API}/jobs/${jobId}/apply`, {
-    method: "POST",
+// --------------------
+// LOAD MY APPLICATIONS
+// --------------------
+async function loadMyApplications() {
+  const res = await fetch(`${API}/my-applications`, {
     headers: {
-      "Authorization": `Bearer ${token}`
+      Authorization: `Bearer ${token}`
     }
   });
 
   const data = await res.json();
-  alert(data.message || data.error);
 
-  btn.innerText = "Applied";
+  myApplicationsMap = {};
+
+  if (data.applications) {
+    data.applications.forEach(app => {
+      myApplicationsMap[app.job_id] = app.status;
+    });
+  }
 }
 
+// --------------------
+// LOAD JOBS
+// --------------------
+async function loadJobs() {
+  const res = await fetch(`${API}/jobs`);
+  const data = await res.json();
 
-loadJobs();
+  const container = document.getElementById("jobs");
+  container.innerHTML = "";
+
+  if (data.jobs.length === 0) {
+    container.innerHTML = "<p>No jobs available</p>";
+    return;
+  }
+
+  data.jobs.forEach(job => {
+    const card = document.createElement("div");
+    card.className = "job-card";
+
+    const appliedStatus = myApplicationsMap[job.id];
+
+    let buttonHTML = "";
+    let statusHTML = "";
+
+    if (appliedStatus) {
+      buttonHTML = `<button disabled>${appliedStatus}</button>`;
+      statusHTML = `<p class="status ${appliedStatus.toLowerCase()}">
+        Status: ${appliedStatus}
+      </p>`;
+    } else {
+      buttonHTML = `<button onclick="applyForJob(${job.id}, this)">Apply</button>`;
+    }
+
+    card.innerHTML = `
+      <h4>${job.title}</h4>
+      <p>${job.company}</p>
+      <p>${job.description}</p>
+      ${buttonHTML}
+      ${statusHTML}
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+// --------------------
+// APPLY FOR JOB
+// --------------------
+async function applyForJob(jobId, button) {
+  button.disabled = true;
+  button.innerText = "Applying...";
+
+  const res = await fetch(`${API}/jobs/${jobId}/apply`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.error);
+    button.disabled = false;
+    button.innerText = "Apply";
+    return;
+  }
+
+  alert("Applied successfully");
+
+  await loadMyApplications();
+  loadJobs();
+}
+
+// --------------------
+// LOGOUT
+// --------------------
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+}
+
+// --------------------
+// INIT
+// --------------------
+async function init() {
+  await loadMyApplications();
+  await loadJobs();
+}
+
+init();
+
+// expose logout
+window.logout = logout;

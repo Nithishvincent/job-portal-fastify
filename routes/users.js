@@ -1,4 +1,5 @@
 const db = require("../db");
+const bcrypt = require("bcrypt");
 
 module.exports = async function userRoutes(fastify, options) {
 
@@ -26,9 +27,11 @@ module.exports = async function userRoutes(fastify, options) {
       return { error: "Email already registered" };
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     await db.query(
       "INSERT INTO users (email, password, role) VALUES (?, ?, ?)",
-      [email, password, role]
+      [email, hashedPassword, role]
     );
 
     return { message: "User registered successfully" };
@@ -48,12 +51,18 @@ module.exports = async function userRoutes(fastify, options) {
       [email]
     );
 
-    if (rows.length === 0 || rows[0].password !== password) {
+    if (rows.length === 0) {
       reply.code(401);
       return { error: "Invalid email or password" };
     }
 
     const user = rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      reply.code(401);
+      return { error: "Invalid email or password" };
+    }
 
     const token = fastify.jwt.sign({
       email: user.email,
@@ -65,4 +74,5 @@ module.exports = async function userRoutes(fastify, options) {
       token
     };
   });
+
 };
