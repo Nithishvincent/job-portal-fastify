@@ -26,6 +26,7 @@ async function login() {
   if(!email || !password) {
     alert("Email and password are required");
     return;
+  
   }
   const res = await fetch(`${API}/users/login`, {
     method: "POST",
